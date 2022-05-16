@@ -54,7 +54,6 @@ static struct{
     { H8_3069F_SCI2 }
 };
 
-
 int serial_init(int index)
 {   
     volatile struct h8_3069f_sci *sci = regs[index].sci;
@@ -65,5 +64,24 @@ int serial_init(int index)
     sci->scr = H8_3069F_SCI_SCR_RE | H8_3069F_SCI_SCR_TE;
     sci->ssr = 0;
     
+    return 0;
+}
+
+int serial_is_send_enable(int index)
+{
+    volatile struct h8_3069f_sci *sci = regs[index].sci;
+    return (sci->ssr & H8_3069F_SCI_SSR_TDRE);
+}
+
+int serial_send_byte(int index,unsigned char c)
+{
+    volatile struct h8_3069f_sci *sci = regs[index].sci;
+
+    while(!serial_is_send_enable(index))
+    ;
+    
+    sci->tdr = c;
+    sci->ssr &= ~H8_3069F_SCI_SSR_TDRE;
+
     return 0;
 }

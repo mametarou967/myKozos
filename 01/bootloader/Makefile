@@ -10,14 +10,19 @@ H8WRITE = ../../kz_h8write-v0.2.1/PackageFiles/src/kz_h8write
 H8WRITE_SERDEV = /dev/ttyS1
 
 OBJS  = vector.o main.o startup.o
-OBJS += serial.o
+OBJS += serial.o lib.o
 
 TARGET = kzload
 
-CFLAGS = -Wall -mh -nostdinc -nostdlib -fno-builtin
-
+CFLAGS =  -Wall -mh -nostdinc -nostdlib -fno-builtin
+CFLAGS += -I.
+CFLAGS += -Os
+CFLAGS += -DKZLOAD
 
 LFLAGS = -static -T ld.scr -L.
+
+.SUFFIXES: .c .o
+.SUFFIXES: .s .o
 
 all :			$(TARGET)
 

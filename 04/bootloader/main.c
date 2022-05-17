@@ -1,9 +1,8 @@
 #include "defines.h"
 #include "serial.h"
+#include "xmodem.h"
 #include "lib.h"
 
-volatile int value = 10;
-int value3;
 
 static int init(void)
 {
@@ -19,41 +18,90 @@ static int init(void)
 	return 0;
 }
 
+static int dump(char *buf,long size)
+{
+	long i;
+
+	if(size < 0)
+	{
+		puts("o data.\n");
+		return -1;
+	}
+
+	for(i = 0;i < size; i++)
+	{
+		putxval(buf[i],2);
+		if((i & 0xf) == 15)
+		{
+			puts("\n");
+		}else{
+			if((i & 0xf) == 7)
+			{
+				puts(" ");
+			}
+
+			puts(" ");
+		}
+	}
+
+	puts("\n");
+
+	return 0;
+}
+
+static void wait()
+{
+	volatile long i;
+	for(i=0;i<300000;i++)
+		;
+}
+
 int main(void)
 {
+	static char buf[16];
+	static long size = -1;
+	static unsigned char *loadbuf = NULL;
+	extern int buffer_start;
+
 	init();
 
-	int value2 = 30;
-
-	puts("Hello Kozos\n");
-	
-	putxval(value,0);
-	puts("\n");
-
-	value = 20;
-
-	putxval(value,0);
-	puts("\n");
-
-	putxval(value2,0);
-	puts("\n");
-	
-	value2 = 40;
-
-	putxval(value2,0);
-	puts("\n");
-	
-	putxval(value3,0);
-	puts("\n");
-
-	value3 = 50;
-
-	putxval(value3,0);
-	puts("\n");
-
+	puts("kzload started\n");
 
 	while(1)
-		;
+	{
+		puts("kzload> ");
+		gets(buf);
+
+		puts("input string:");
+		puts(buf);
+		puts("\n");
+
+		if(!strcmp(buf,"load"))
+		{
+			loadbuf = (char *)(&buffer_start);
+			size = xmodem_recv(loadbuf);
+			wait();
+			if(size < 0)
+			{
+				puts("\nXMODEM receive error!\n");
+			}
+			else
+			{
+				puts("\nXMODEM receive succeeded.\n");
+			}
+		}
+		else if(!strcmp(buf,"dump"))
+		{
+			puts("size: ");
+			putxval(size,0);
+			puts("\n");
+			dump(loadbuf,size);
+		}
+		else
+		{
+			puts("unknown.\n");
+		}
+	}
 
 	return 0;
 }

@@ -97,6 +97,10 @@ int main(void)
 			puts("\n");
 			dump(loadbuf,size);
 		}
+		else if(!strcmp(buf,"run"))
+		{
+			elf_load(loadbuf);
+		}
 		else
 		{
 			puts("unknown.\n");

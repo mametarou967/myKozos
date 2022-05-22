@@ -62,6 +62,8 @@ int main(void)
 	static long size = -1;
 	static unsigned char *loadbuf = NULL;
 	extern int buffer_start;
+	char *entry_point;
+	void (*f)(void);
 
 	init();
 
@@ -99,7 +101,19 @@ int main(void)
 		}
 		else if(!strcmp(buf,"run"))
 		{
-			elf_load(loadbuf);
+			// elf_load(loadbuf);
+			entry_point = elf_load(loadbuf); // メモリ上にosを展開
+			if(!entry_point)
+			{
+				puts("[error]run error");
+			}else{
+				puts("starting from entry point: ");
+				putxval((unsigned long)entry_point, 0);
+				puts("\n");
+				f = (void(*)(void))entry_point;
+				f(); // entry pointに処理を渡す
+				// ココから先は返ってこない
+			}
 		}
 		else
 		{

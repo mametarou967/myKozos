@@ -41,18 +41,45 @@ struct elf_program_header
 
 static int elf_check(struct elf_header *header)
 {
-    if(memcmp(header->id.magic, "\x7f" "ELF",4))
+    if(memcmp(header->id.magic, "\x7f" "ELF",4) < 0)
     {
+        puts("[error]header->id.magic is not ELF\n");
         return -1;
     }
 
-    if(header->id.class != 1) return -1;
-    if(header->id.format != 2) return -1;
-    if(header->id.version != 1) return -1;
-    if(header->type != 2) return -1;
-    if(header->version != 1) return -1;
+    if(header->id.class != 1)
+    {
+        puts("[error]header->id.class is not 1\n");
+        return -1;
+    }
+    if(header->id.format != 2)
+    {
+        puts("[error]header->id.format is not 2\n");
+        return -1;
+    }
 
-    if((header->arch != 46) && (header->arch != 47)) return -1;
+    if(header->id.version != 1)
+    {
+        puts("[error]header->id.version is not 1\n");
+        return -1;
+    }
+    if(header->type != 2)
+    {
+        puts("[error]header->id.type is not 2\n");
+        return -1;
+    }
+
+    if(header->version != 1)
+    {
+        puts("[error]header->id.version is not 1\n");
+        return -1;
+    }
+
+    if((header->arch != 46) && (header->arch != 47))
+    {
+        puts("[error]header->id.arch is not 46 or 47\n");
+        return -1;
+    }
 
     return 0;
 }
@@ -68,6 +95,8 @@ static int elf_load_program(struct elf_header *header)
 
         if(phdr->type != 1) continue;
 
+
+        /*
         putxval(phdr->offset,6);
         puts(" ");
         putxval(phdr->virtual_addr,8);
@@ -82,24 +111,35 @@ static int elf_load_program(struct elf_header *header)
         puts(" ");
         putxval(phdr->align,2);
         puts("\n");
+        */
+        // ファイルの内容をコピー
+        memcpy((char *)phdr->physical_addr,(char *)header  + phdr->offset,phdr->file_size);
+        // BSS対策
+        memset((char *)phdr->physical_addr + phdr->file_size,0,phdr->memory_size - phdr->file_size);
     }
 
     return 0;
 }
 
-int elf_load(char *buf)
+char *elf_load(char *buf)
 {
     struct elf_header *header = (struct elf_header *)buf;
 
+    puts("[log]elf_load start\n");
+
     if(elf_check(header) < 0)
     {
-        return -1;
+        puts("[error]elf_check\n");
+        return NULL;
     }
 
     if(elf_load_program(header) < 0)
     {
-        return -1;
+        puts("[error]elf_load_program\n");
+        return NULL;
     }
+    
+    puts("[log]end\n");
 
-    return 0;
+    return (char *)header->entry_point;
 }

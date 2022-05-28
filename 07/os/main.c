@@ -10,7 +10,6 @@ static void intr(softvec_type_t type,unsigned long sp)
 	static char buf[32];
 	static int len;
 
-	puts("[IN]");
 	c = getc();
 
 	if(c != '\n')
@@ -19,8 +18,9 @@ static void intr(softvec_type_t type,unsigned long sp)
 	}
 	else
 	{
+
 		buf[len++] = '\0';
-		if(!strncmp(buf,"echo",4))
+		if(strncmp(buf,"echo",4) == 0)
 		{
 			puts(buf + 4);
 			puts("\n");
@@ -30,8 +30,8 @@ static void intr(softvec_type_t type,unsigned long sp)
 			puts("unknown.\n");
 		}
 		puts("> ");
+		len = 0;
 	}
-	len = 0;
 }
 
 int main(void)
